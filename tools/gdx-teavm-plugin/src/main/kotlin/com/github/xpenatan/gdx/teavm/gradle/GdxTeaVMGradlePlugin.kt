@@ -713,34 +713,36 @@ class GdxTeaVMGradlePlugin : Plugin<Project> {
             return@provider emptyList()
         }
 
-        val patterns = reflectionPatterns(extension)
-        if(patterns.isEmpty()) {
+        val userPatterns = reflectionPatterns(extension)
+        val defaultPatterns = if(extension.reflectionDefaults.get()) DEFAULT_REFLECTION_PATTERNS else emptyList()
+        if(userPatterns.isEmpty() && defaultPatterns.isEmpty()) {
             if(debug) {
                 project.logger.lifecycle("[gdx-teavm] Reflection enabled for target '$targetBackend', but no Gradle reflection patterns were configured")
             }
             return@provider emptyList()
         }
 
+        val scannedPatterns = if(extension.reflectionScan.get()) userPatterns + defaultPatterns else defaultPatterns
         val classes = linkedSetOf<String>()
-        val classpathFiles = if(extension.reflectionScan.get()) {
+        val classpathFiles = if(scannedPatterns.isNotEmpty()) {
             classpathProvider.get()
         }
         else {
             emptySet()
         }
-        if(extension.reflectionScan.get()) {
-            val matchers = patterns.map { pattern ->
+        if(scannedPatterns.isNotEmpty()) {
+            val matchers = scannedPatterns.map { pattern ->
                 FileSystems.getDefault().getPathMatcher("glob:" + pattern.replace('.', '/'))
             }
             for(file in classpathFiles) {
                 scanReflectionClasses(file, matchers, classes)
             }
         }
-        else {
-            classes.addAll(patterns.filter(::isExactClassName))
+        if(!extension.reflectionScan.get()) {
+            classes.addAll(userPatterns.filter(::isExactClassName))
         }
         if(debug) {
-            logReflectionClasses(project, targetBackend, extension.reflectionScan.get(), patterns, classpathFiles, classes)
+            logReflectionClasses(project, targetBackend, extension.reflectionScan.get(), userPatterns + defaultPatterns, classpathFiles, classes)
         }
         classes.toList()
     }
@@ -1599,5 +1601,22 @@ class GdxTeaVMGradlePlugin : Plugin<Project> {
         const val WEBAPP_INDEX_PATH = "gdx.teavm.webapp.indexPath"
         const val REFLECTION_CLASSES = "gdx.teavm.reflection.classes"
         const val VALIDATION_ONLY_MAIN_CLASS = "com.github.xpenatan.gdx.teavm.gradle.ValidationOnlyMainClass"
+
+        // Must match TeaReflectionSupplier.DEFAULT_REFLECTION_PATTERNS in backend-shared.
+        val DEFAULT_REFLECTION_PATTERNS = listOf(
+            "com.badlogic.gdx.scenes.scene2d.**",
+            "net.mgsx.gltf.data.**",
+            "com.badlogic.gdx.utils.Array",
+            "com.badlogic.gdx.utils.ArrayMap",
+            "com.badlogic.gdx.utils.IntIntMap",
+            "com.badlogic.gdx.utils.IntMap",
+            "com.badlogic.gdx.utils.IntSet",
+            "com.badlogic.gdx.utils.LongMap",
+            "com.badlogic.gdx.utils.ObjectFloatMap",
+            "com.badlogic.gdx.utils.ObjectIntMap",
+            "com.badlogic.gdx.utils.ObjectMap",
+            "com.badlogic.gdx.utils.ObjectSet",
+            "com.badlogic.gdx.utils.Queue"
+        )
     }
 }

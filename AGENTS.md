@@ -208,8 +208,10 @@
   - `reflectionDefaults`
   - `reflectionScan`
   - `reflectionDebug`
-- Runtime emulation classes read reflection metadata through `TeaReflectionSupplier`.
-- Plugin generation installs reflection support through `TeaVMPluginReflectionSupport`.
+- Runtime emulation classes read the registered class list through `TeaReflectionSupplier`.
+- TeaVM reflection metadata for registered classes is declared by `GdxReflectionPolicy`: lookup by
+  name, instance fields and the no-arg constructor. Applications needing reflective methods or
+  other constructors register their own TeaVM `SimpleReflectionPolicy` service.
 
 ## JSO And Wasm Strict Mode
 - TeaVM Wasm strict mode emits runtime checks for non-transparent `@JSClass` overlays.

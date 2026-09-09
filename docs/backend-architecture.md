@@ -174,7 +174,21 @@ WebPlugin / native runtime plugin
 TeaReflectionSupplier
 ```
 
-Runtime reflection emulation in backend `emu` source sets uses `TeaReflectionSupplier`. Built-in default reflection patterns are owned by `TeaReflectionSupplier`; the Gradle plugin only passes the `reflectionDefaults` flag and user-provided `reflection(...)` patterns.
+Runtime reflection emulation in backend `emu` source sets uses `TeaReflectionSupplier`.
+
+Both paths only collect class names into `TeaReflectionSupplier`, the registry the `emu` code
+generators and `GdxReflectionPolicy` read. Pattern scanning happens before the TeaVM build: the
+Gradle plugin resolves user `reflection(...)` patterns and (when `reflectionDefaults` is on) the
+built-in default patterns against the target classpath, and `TeaBackend` does the same for the
+builder path. Classes that are only referenced by name are kept alive through TeaVM's own
+`classesToPreserve` (`preservedClasses` in the Gradle plugin, `TeaVMTool.getClassesToPreserve()`
+in the builder path), which also covers the TeaVM development server.
+
+The reflection metadata TeaVM emits for registered classes is declared by `GdxReflectionPolicy`, a
+TeaVM `SimpleReflectionPolicy` registered as a `org.teavm.extension.spi.reflection.ReflectionPolicy`
+service. It exposes lookup by name, instance fields and the no-arg constructor — the surface
+libGDX's `Json`, `Skin` and `Pools` use. Methods and other constructors are not reflectable;
+an application that needs them can register its own `SimpleReflectionPolicy` service.
 
 ## Native Toolchain Policy
 

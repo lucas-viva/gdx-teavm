@@ -13,7 +13,7 @@ These properties live directly inside `gdxTeaVM { ... }`.
 | `reflection` | `ListProperty<String>` | empty | Reflection class names or package patterns to preserve. |
 | `reflectionEnabled` | `Property<Boolean>` | `true` | Enables gdx-teavm reflection metadata generation. |
 | `reflectionDefaults` | `Property<Boolean>` | `true` | Adds default reflection configuration required by common libGDX runtime types. |
-| `reflectionScan` | `Property<Boolean>` | `true` | Scans reachable classes and configured packages for reflection metadata. |
+| `reflectionScan` | `Property<Boolean>` | `true` | Scans the classpath to resolve `reflection` patterns to classes. When `false`, only exact class names from `reflection` are used; default patterns are still resolved while `reflectionDefaults` is on. |
 | `reflectionDebug` | `Property<Boolean>` | `false` | Prints extra reflection metadata diagnostics during TeaVM generation. |
 
 Helper methods:

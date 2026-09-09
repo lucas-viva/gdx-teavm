@@ -686,3 +686,22 @@ gdxTeaVM {
 ```
 
 Use concrete class names for individual types and package patterns ending in `**` for package trees.
+
+Registered classes (including the built-in defaults) get the reflection surface libGDX uses:
+lookup by name, instance fields and the no-arg constructor. `Json`, `Skin` and `Pools` instantiate
+a class through its no-arg constructor and fill it field by field, so nothing else is needed, and
+every extra member would cost a generated caller wrapper in the output. If your application
+reflectively calls methods or other constructors, declare them with your own TeaVM reflection
+policy — a class extending `org.teavm.extension.spi.reflection.SimpleReflectionPolicy`, registered
+as a `META-INF/services/org.teavm.extension.spi.reflection.ReflectionPolicy` service:
+
+```java
+public class MyReflectionPolicy extends SimpleReflectionPolicy {
+    @Override
+    protected void setup() {
+        selectClass("com.example.game.Dispatcher")
+                .foundByName()
+                .reflectablePublicMethods();
+    }
+}
+```

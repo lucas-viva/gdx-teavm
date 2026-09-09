@@ -157,6 +157,9 @@ class GdxTeaVMWebDevServerTest {
     @Test
     fun `web run tasks delegate to TeaVM dev servers when enabled`() {
         val project = configuredProject { extension ->
+            // Resolving default reflection patterns scans the target classpath, which this
+            // repository-less test project cannot resolve.
+            extension.reflectionDefaults.set(false)
             extension.js(Action {
                 mainClass.set("example.JsMain")
                 serverPort.set(8181)
